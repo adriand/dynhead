@@ -1,0 +1,86 @@
+<html>                                                                  
+<head>                                                                  
+<script type="text/javascript" src="jquery.js"></script>          
+<script type="text/javascript">                                         
+
+function draw_grid() {
+  for ($i = 0;$i < this.ylines;$i++) {
+    cells = "";
+    for ($j = 0;$j < this.xlines;$j++) {
+      // cells += "<td>" + $j + " " + $i + "</td>";
+      cells += "<td></td>";
+    }
+    $("<tr>" + cells + "</tr>").appendTo(this.table);
+  }
+  
+  this.xwidth = $(this.table).width() / this.xlines;
+  $(this.table + " tr td").css({ "width" : this.xwidth + "px", "height" : this.xwidth + "px" })
+  $(this.table).bind("click", { container : this.table }, this.draw_unit);
+}
+
+function draw_unit(e) {
+  // TODO: proper element references in the code, no hard-coded widths
+  var x = (e.pageX - $(e.data.container).offset().left) - 9;
+	var y = (e.pageY - $(e.data.container).offset().top) - 9;
+  // alert(x +', '+ y);
+  $("<img class='unit' src='white.png' />").css({ "left":x + "px", "top":y + "px" }).appendTo("#grid_container");
+  $("#grid_container img:last").fadeOut("slow");
+}
+
+function Grid(table, xlines, ylines) {
+  this.table = table;
+  this.xlines = xlines;
+  this.ylines = ylines;
+  this.draw_grid = draw_grid;
+  this.draw_unit = draw_unit;
+}
+
+$(document).ready(function() {
+  grid = new Grid("#grid",200,16);
+  grid.draw_grid();
+  
+});
+
+</script>
+
+<style type="text/css">
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#grid_container {
+  margin-top: 20px;
+  margin-left: 20px;
+  width: 1600px;
+  position: relative;
+}
+
+#grid {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #A2A2A2;
+}
+
+#grid tr td {
+  font-size: 12px;
+  border: 1px solid silver;
+  padding: 3px;
+}
+
+img.unit {
+  position: absolute;
+  width: 18px;
+}
+
+</style>
+
+</head>
+<body>
+<div id="grid_container">
+  <table id="grid">
+  </table>
+</div>
+</body>
+</html>
