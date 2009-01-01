@@ -1,45 +1,87 @@
 <html>                                                                  
 <head>                                                                  
 <script type="text/javascript" src="jquery.js"></script>          
-<script type="text/javascript">                                         
+<script type="text/javascript">
 
-function draw_grid() {
-  for ($i = 0;$i < this.ylines;$i++) {
+function render(grid_array) {
+  // get the size of the array
+  var ylimit = grid_array.length;
+  // since all elements in the array are the same size we can identify width using the length of the first array
+  var xlimit = grid_array[0].length;
+  
+  for (var i = 0;i < ylimit;i++) {
     cells = "";
-    for ($j = 0;$j < this.xlines;$j++) {
+    for (var j = 0;j < xlimit;j++) {
       // cells += "<td>" + $j + " " + $i + "</td>";
       cells += "<td></td>";
     }
     $("<tr>" + cells + "</tr>").appendTo(this.table);
   }
   
-  this.xwidth = $(this.table).width() / this.xlines;
+  this.xwidth = Math.round($(this.table).width() / xlimit);
   $(this.table + " tr td").css({ "width" : this.xwidth + "px", "height" : this.xwidth + "px" })
-  $(this.table).bind("click", { container : this.table }, this.draw_unit);
+  
 }
 
-function draw_unit(e) {
-  // TODO: proper element references in the code, no hard-coded widths
-  var x = (e.pageX - $(e.data.container).offset().left) - 9;
-	var y = (e.pageY - $(e.data.container).offset().top) - 9;
-  // alert(x +', '+ y);
-  $("<img class='unit' src='white.png' />").css({ "left":x + "px", "top":y + "px" }).appendTo("#grid_container");
-  $("#grid_container img:last").fadeOut("slow");
-}
-
-function Grid(table, xlines, ylines) {
+function GridView(table, container, unit_width) {
   this.table = table;
-  this.xlines = xlines;
-  this.ylines = ylines;
-  this.draw_grid = draw_grid;
-  this.draw_unit = draw_unit;
+  this.container = container;
+  this.unit_width = unit_width;
+  this.xwidth = 0;
+  
+  // methods
+  this.render = render;
+  
+  // events
+  $(this.table).bind("click", { grid_view : this }, click_update);
+}
+
+// load grid data from web service
+function load() {
+  
+  
+}
+
+// store new click data (although it's not necessarily used at this point) and then push it to web service
+function update(x, y) {
+  
+  
+}
+
+function GridData(xlimit, ylimit) {
+  this.xlimit = xlimit;
+  this.ylimit = ylimit;
+  this.grid_array = new Array(ylimit);
+  for (i = 0;i < ylimit;i++) {
+    this.grid_array[i] = new Array(xlimit);
+  }
+  
+  // methods
+  this.load = load;
+}
+
+
+// not part of any object
+function click_update(e) {
+  var width_correction = grid_view.unit_width / 2;
+  var x = (e.pageX - $(grid_view.container).offset().left) - width_correction;
+	var y = (e.pageY - $(grid_view.container).offset().top) - width_correction;
+  // alert(x +', '+ y);
+  $("<img class='unit' src='white.png' />").css({ "left":x + "px", "top":y + "px" }).appendTo(grid_view.container);  
+  grid_data.update(x, y);
 }
 
 $(document).ready(function() {
-  grid = new Grid("#grid",200,16);
-  grid.draw_grid();
+  grid_data = new GridData(200,16);
+  
+  grid_view = new GridView("#grid","#grid_container",16);
+  grid_view.render(grid_data.grid_array);
+  
   
 });
+
+var grid_data;
+var grid_view;
 
 </script>
 
@@ -49,29 +91,25 @@ body {
   margin: 0;
   padding: 0;
 }
-
 #grid_container {
   margin-top: 20px;
   margin-left: 20px;
   width: 1600px;
   position: relative;
 }
-
 #grid {
   width: 100%;
   border-collapse: collapse;
   background-color: #A2A2A2;
 }
-
 #grid tr td {
   font-size: 12px;
   border: 1px solid silver;
   padding: 3px;
 }
-
 img.unit {
   position: absolute;
-  width: 18px;
+  width: 16px;
 }
 
 </style>
