@@ -23,6 +23,14 @@ function render(grid_array) {
   
 }
 
+function render_click(x, y) {
+  // correct widths so the placed object is centered (since it is placed according to top-left coordinate)
+  var width_correction = this.unit_width / 2;
+  x -= width_correction;
+  y -= width_correction;
+  $("<img class='unit' src='white.png' />").css({ "left":x + "px", "top":y + "px" }).appendTo(this.container);  
+}
+
 function GridView(table, container, unit_width) {
   this.table = table;
   this.container = container;
@@ -31,6 +39,7 @@ function GridView(table, container, unit_width) {
   
   // methods
   this.render = render;
+  this.render_click = render_click;
   
   // events
   $(this.table).bind("click", { grid_view : this }, click_update);
@@ -58,23 +67,27 @@ function GridData(xlimit, ylimit) {
   
   // methods
   this.load = load;
+  this.update = update;
 }
 
 
 // not part of any object
 function click_update(e) {
-  var width_correction = grid_view.unit_width / 2;
-  var x = (e.pageX - $(grid_view.container).offset().left) - width_correction;
-	var y = (e.pageY - $(grid_view.container).offset().top) - width_correction;
-  // alert(x +', '+ y);
-  $("<img class='unit' src='white.png' />").css({ "left":x + "px", "top":y + "px" }).appendTo(grid_view.container);  
+  // clicks should snap to grid  
+  // do this by dividing by xwidth, rounding the result, then multiplying by that
+  var x = (e.pageX - $(grid_view.container).offset().left);
+  x = Math.round(x / grid_view.xwidth) * grid_view.xwidth;
+	var y = (e.pageY - $(grid_view.container).offset().top);
+	y = Math.round(y / grid_view.xwidth) * grid_view.xwidth;
+	
+	grid_view.render_click(x, y);
   grid_data.update(x, y);
 }
 
 $(document).ready(function() {
   grid_data = new GridData(200,16);
   
-  grid_view = new GridView("#grid","#grid_container",16);
+  grid_view = new GridView("#grid","#grid_container",12);
   grid_view.render(grid_data.grid_array);
   
   
@@ -105,11 +118,11 @@ body {
 #grid tr td {
   font-size: 12px;
   border: 1px solid silver;
-  padding: 3px;
+  padding: 4px;
 }
 img.unit {
   position: absolute;
-  width: 16px;
+  width: 12px;
 }
 
 </style>
