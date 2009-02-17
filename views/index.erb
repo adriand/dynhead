@@ -3,35 +3,47 @@
 <script type="text/javascript" src="jquery.js"></script>          
 <script type="text/javascript">
 
-function render(grid_array) {
-  // get the size of the array
-  var ylimit = grid_array.length;
-  // since all elements in the array are the same size we can identify width using the length of the first array
-  var xlimit = grid_array[0].length;
-  
-  for (var i = 0;i < ylimit;i++) {
+function render() {
+  // draw the table based on x and ylimits
+  for (i = 0;i < this.ylimit;i++) {
     cells = "";
-    for (var j = 0;j < xlimit;j++) {
-      // cells += "<td>" + $j + " " + $i + "</td>";
+    for (j = 0;j < this.xlimit;j++) {
       cells += "<td></td>";
     }
     $("<tr>" + cells + "</tr>").appendTo(this.table);
   }
   
-  this.xwidth = Math.round($(this.table).width() / xlimit);
-  $(this.table + " tr td").css({ "width" : this.xwidth + "px", "height" : this.xwidth + "px" })
-  
+  this.xwidth = Math.round($(this.table).width() / this.xlimit);
+  $(this.table + " tr td").css({ "width" : this.xwidth + "px", "height" : this.xwidth + "px" });
 }
 
-function render_click(x, y) {
+function update(x, y) {
+  $.post(this.dback + "/update", { x: x / this.xwidth, y: y / this.xwidth }, function(data) {
+  });  
   // correct widths so the placed object is centered (since it is placed according to top-left coordinate)
   var width_correction = this.unit_width / 2;
   x -= width_correction;
   y -= width_correction;
-  $("<img class='unit' src='white.png' />").css({ "left":x + "px", "top":y + "px" }).appendTo(this.container);  
+  $("<img class='unit' src='white.png' />").css({ "left":x + "px", "top":y + "px" }).appendTo(this.container);
 }
 
-function GridView(table, container, unit_width) {
+// load grid data points from web service
+function load_points() {
+  var gv = this;
+  $.get(this.dback + "/points", function(data) {
+    var items = eval(data);  
+    $.each(items, function(i,item) {
+      // TODO: add opacity in, with item.opacity
+      gv.update(item.x * gv.xwidth, item.y * gv.xwidth);    
+    });
+  });
+}
+
+// TODO: redefine the function definition to take an options hash instead
+function GridView(xlimit, ylimit, dback, table, container, unit_width) {
+  this.xlimit = xlimit;
+  this.ylimit = ylimit;
+  this.dback = dback;  
   this.table = table;
   this.container = container;
   this.unit_width = unit_width;
@@ -39,56 +51,11 @@ function GridView(table, container, unit_width) {
   
   // methods
   this.render = render;
-  this.render_click = render_click;
+  this.update = update;
+  this.load_points = load_points;  
   
   // events
   $(this.table).bind("click", { grid_view : this }, click_update);
-}
-
-// load grid data points from web service
-function load_points() {
-  var gd = this;
-  $.get(this.dback + "/points", function(data) {
-    var items = eval(data);
-    
-    /*
-    for (i = 0;i < items.length;i++) {
-      gd.grid_array[items[i].x][items[i].y] = items[i].opacity;
-      alert(gd.grid_array[item.x][item.y]);
-    }
-    */
-    
-    $.each(items, function(i,item) {
-      gd.grid_array[item.x][item.y] = item.opacity;
-    });
-    
-  });
-}
-
-// store new click data (although it's not necessarily used at this point) and then push it to web service
-function update(x, y) {
-  x = x / this.click_divisor;
-  y = y / this.click_divisor;
-  $.post(this.dback + "/update", { x: x, y: y }, function(data) {
-    alert(data);
-    
-  });
-  
-}
-
-function GridData(xlimit, ylimit, dback) {
-  this.xlimit = xlimit;
-  this.ylimit = ylimit;
-  this.dback = dback;
-  this.click_divisor = 0; // the value that will be used to normalize click points - will be set to gridview's xwidth
-  this.grid_array = new Array(ylimit);
-  for (i = 0;i < ylimit;i++) {
-    this.grid_array[i] = new Array(xlimit);
-  }
-  
-  // methods
-  this.load_points = load_points;
-  this.update = update;
 }
 
 // not part of any object
@@ -100,21 +67,15 @@ function click_update(e) {
 	var y = (e.pageY - $(grid_view.container).offset().top);
 	y = Math.round(y / grid_view.xwidth) * grid_view.xwidth;
 	
-	grid_view.render_click(x, y);
-  grid_data.update(x, y);
+	grid_view.update(x, y);
 }
 
 $(document).ready(function() {
-  grid_data = new GridData(200,16,"http://localhost:4567");
-  grid_data.load_points();
-  
-  grid_view = new GridView("#grid","#grid_container",12);
-  grid_view.render(grid_data.grid_array);
-  
-  grid_data.click_divisor = grid_view.xwidth;
+  grid_view = new GridView(200, 16, "http://localhost:4567", "#grid","#grid_container",12);
+  grid_view.render();
+  grid_view.load_points();
 });
 
-var grid_data;
 var grid_view;
 
 </script>
