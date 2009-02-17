@@ -53,13 +53,17 @@ function load() {
 
 // store new click data (although it's not necessarily used at this point) and then push it to web service
 function update(x, y) {
-  
+  $.post(this.dback + "/update", { x: x, y: y }, function(data) {
+    alert(data);
+    
+  });
   
 }
 
-function GridData(xlimit, ylimit) {
+function GridData(xlimit, ylimit, dback) {
   this.xlimit = xlimit;
   this.ylimit = ylimit;
+  this.dback = dback;
   this.grid_array = new Array(ylimit);
   for (i = 0;i < ylimit;i++) {
     this.grid_array[i] = new Array(xlimit);
@@ -85,7 +89,7 @@ function click_update(e) {
 }
 
 $(document).ready(function() {
-  grid_data = new GridData(200,16);
+  grid_data = new GridData(200,16,"http://localhost:4567");
   
   grid_view = new GridView("#grid","#grid_container",12);
   grid_view.render(grid_data.grid_array);
