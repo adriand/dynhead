@@ -5,6 +5,7 @@ require 'ruby-debug'
 require 'dm-core'
 require 'dm-validations'
 require 'dm-timestamps'
+require 'json'
 
 DataMapper.setup(:default, "sqlite3://#{Dir.pwd}/dynserv.sqlite3")
 
@@ -23,11 +24,18 @@ end
 DataMapper.auto_upgrade!
 
 get '/' do
-  
+  erb :index
 end
 
-get '/grid' do
-  
+# the javascript only needs the coordinates plus the opacity - we don't have to return the entire
+# grid, since the javascript is responsible for initialization
+get '/points' do
+  point_array = []
+  points = Point.all
+  points.each do |point|
+    point_array << { :x => point.x, :y => point.y, :opacity => point.opacity }
+  end
+  JSON.generate(point_array)
 end
 
 post '/update' do

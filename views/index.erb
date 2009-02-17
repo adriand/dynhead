@@ -45,14 +45,30 @@ function GridView(table, container, unit_width) {
   $(this.table).bind("click", { grid_view : this }, click_update);
 }
 
-// load grid data from web service
-function load() {
-  
-  
+// load grid data points from web service
+function load_points() {
+  var gd = this;
+  $.get(this.dback + "/points", function(data) {
+    var items = eval(data);
+    
+    /*
+    for (i = 0;i < items.length;i++) {
+      gd.grid_array[items[i].x][items[i].y] = items[i].opacity;
+      alert(gd.grid_array[item.x][item.y]);
+    }
+    */
+    
+    $.each(items, function(i,item) {
+      gd.grid_array[item.x][item.y] = item.opacity;
+    });
+    
+  });
 }
 
 // store new click data (although it's not necessarily used at this point) and then push it to web service
 function update(x, y) {
+  x = x / this.click_divisor;
+  y = y / this.click_divisor;
   $.post(this.dback + "/update", { x: x, y: y }, function(data) {
     alert(data);
     
@@ -64,16 +80,16 @@ function GridData(xlimit, ylimit, dback) {
   this.xlimit = xlimit;
   this.ylimit = ylimit;
   this.dback = dback;
+  this.click_divisor = 0; // the value that will be used to normalize click points - will be set to gridview's xwidth
   this.grid_array = new Array(ylimit);
   for (i = 0;i < ylimit;i++) {
     this.grid_array[i] = new Array(xlimit);
   }
   
   // methods
-  this.load = load;
+  this.load_points = load_points;
   this.update = update;
 }
-
 
 // not part of any object
 function click_update(e) {
@@ -90,11 +106,12 @@ function click_update(e) {
 
 $(document).ready(function() {
   grid_data = new GridData(200,16,"http://localhost:4567");
+  grid_data.load_points();
   
   grid_view = new GridView("#grid","#grid_container",12);
   grid_view.render(grid_data.grid_array);
   
-  
+  grid_data.click_divisor = grid_view.xwidth;
 });
 
 var grid_data;
