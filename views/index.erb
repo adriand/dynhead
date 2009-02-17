@@ -17,14 +17,16 @@ function render() {
   $(this.table + " tr td").css({ "width" : this.xwidth + "px", "height" : this.xwidth + "px" });
 }
 
-function update(x, y) {
+function update(x, y, opacity, colour) {
+  if (!colour) { colour = "white"; }
+  if (!opacity) { opacity = 1; }
   $.post(this.dback + "/update", { x: x / this.xwidth, y: y / this.xwidth }, function(data) {
   });  
   // correct widths so the placed object is centered (since it is placed according to top-left coordinate)
   var width_correction = this.unit_width / 2;
   x -= width_correction;
   y -= width_correction;
-  $("<img class='unit' src='white.png' />").css({ "left":x + "px", "top":y + "px" }).appendTo(this.container);
+  $("<img class='unit' src='" + colour + ".png' />").css({ "left":x + "px", "top":y + "px" }).appendTo(this.container).fadeTo("slow", opacity);
 }
 
 // load grid data points from web service
@@ -34,8 +36,10 @@ function load_points() {
     var items = eval(data);  
     $.each(items, function(i,item) {
       // TODO: add opacity in, with item.opacity
-      gv.update(item.x * gv.xwidth, item.y * gv.xwidth);    
+      gv.update(item.x * gv.xwidth, item.y * gv.xwidth, item.opacity / 100);
     });
+    // for vanity's sake
+    load_signature();
   });
 }
 
@@ -70,10 +74,20 @@ function click_update(e) {
 	grid_view.update(x, y);
 }
 
+function load_signature() {
+  // hard-coded signature, drawn in the header
+  signature = [{"y":14,"opacity":100,"x":2},{"y":13,"opacity":100,"x":3},{"y":12,"opacity":100,"x":4},{"y":13,"opacity":100,"x":5},{"y":14,"opacity":100,"x":6},{"y":14,"opacity":100,"x":4},{"y":14,"opacity":100,"x":8},{"y":12,"opacity":100,"x":8},{"y":13,"opacity":100,"x":10},{"y":14,"opacity":100,"x":12},{"y":12,"opacity":100,"x":12},{"y":13,"opacity":100,"x":13},{"y":14,"opacity":100,"x":14},{"y":12,"opacity":100,"x":14}];
+  
+  $.each(signature, function(i, points) {
+    grid_view.update(points.x * grid_view.xwidth, points.y * grid_view.xwidth, 1, "black");
+  });
+}
+
 $(document).ready(function() {
   grid_view = new GridView(200, 16, "http://localhost:4567", "#grid","#grid_container",12);
   grid_view.render();
   grid_view.load_points();
+
 });
 
 var grid_view;

@@ -19,9 +19,23 @@ class Point
   property :opacity, Integer, :default => 100
   property :created_at, DateTime
   
+  # make points "age" by lowering their opacity, then eventually destroy them completely
+  def self.expire_points!
+    points = self.all
+    points.each do |point|
+      point.opacity -= 1
+      if point.opacity <= 0
+        point.destroy
+      else
+        point.save
+      end
+    end
+  end
+  
 end
 
 DataMapper.auto_upgrade!
+# DataMapper.auto_migrate!
 
 get '/' do
   erb :index
