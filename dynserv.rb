@@ -22,8 +22,11 @@ end
 
 DataMapper.auto_upgrade!
 
-# return the grid
 get '/' do
+  
+end
+
+get '/grid' do
   
 end
 
