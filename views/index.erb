@@ -17,11 +17,13 @@ function render() {
   $(this.table + " tr td").css({ "width" : this.xwidth + "px", "height" : this.xwidth + "px" });
 }
 
-function update(x, y, opacity, colour) {
+// TODO: use an options hash here
+function update(x, y, opacity, colour, post_to_server) {
   if (!colour) { colour = "white"; }
   if (!opacity) { opacity = 1; }
-  $.post(this.dback + "/update", { x: x / this.xwidth, y: y / this.xwidth }, function(data) {
-  });  
+  if (post_to_server) {
+    $.post(this.dback + "/update", { x: x / this.xwidth, y: y / this.xwidth }, function(data) { });
+  }
   // correct widths so the placed object is centered (since it is placed according to top-left coordinate)
   var width_correction = this.unit_width / 2;
   x -= width_correction;
@@ -56,7 +58,7 @@ function GridView(xlimit, ylimit, dback, table, container, unit_width) {
   // methods
   this.render = render;
   this.update = update;
-  this.load_points = load_points;  
+  this.load_points = load_points; 
   
   // events
   $(this.table).bind("click", { grid_view : this }, click_update);
@@ -71,7 +73,7 @@ function click_update(e) {
 	var y = (e.pageY - $(grid_view.container).offset().top);
 	y = Math.round(y / grid_view.xwidth) * grid_view.xwidth;
 	
-	grid_view.update(x, y);
+	grid_view.update(x, y, null, null, true);
 }
 
 function load_signature() {
@@ -87,6 +89,13 @@ $(document).ready(function() {
   grid_view = new GridView(200, 16, "http://localhost:4567", "#grid","#grid_container",12);
   grid_view.render();
   grid_view.load_points();
+  
+  // alert(new Date());
+  
+  //t = new Date();
+  //t.parse("<%= DateTime.now %>")
+  //t = Date.parse("<%= DateTime.now %>");
+  //alert(t);
 
 });
 

@@ -64,3 +64,7 @@ post '/update' do
   point.save
   "#{x}, #{y} saved."
 end
+
+get '/timestamp' do
+  DateTime.now.to_s
+end
