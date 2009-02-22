@@ -37,6 +37,15 @@ end
 DataMapper.auto_upgrade!
 # DataMapper.auto_migrate!
 
+# allow conversion from Time to DateTime
+class Time
+  def to_datetime
+    DateTime.new(year, month, day, hour, min, sec)
+  rescue NameError
+    nil
+  end
+end
+
 get '/' do
   erb :index
 end
@@ -45,7 +54,15 @@ end
 # grid, since the javascript is responsible for initialization
 get '/points' do
   point_array = []
-  points = Point.all
+  if params[:last_update]
+    # TODO: this does not take into account the time zone
+    # uses epochs, thanks to http://www.epochconverter.com/
+    # we remove 10 seconds to cover server latency
+    last_update = Time.at(params[:last_update].to_i - 10).to_datetime
+    points = Point.all(:created_at.gt => last_update)
+  else
+    points = Point.all
+  end
   points.each do |point|
     point_array << { :x => point.x, :y => point.y, :opacity => point.opacity }
   end
@@ -62,9 +79,11 @@ post '/update' do
     point = Point.new(:x => x, :y => y)
   end
   point.save
+  # OPTIMIZE: much too frequent!
+  Point.expire_points!
   "#{x}, #{y} saved."
 end
 
 get '/timestamp' do
-  DateTime.now.to_s
+  Point.first().created_at.to_s
 end

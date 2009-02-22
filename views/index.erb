@@ -34,15 +34,23 @@ function update(x, y, opacity, colour, post_to_server) {
 // load grid data points from web service
 function load_points() {
   var gv = this;
-  $.get(this.dback + "/points", function(data) {
-    var items = eval(data);  
+  // last_update = last_update.toString();
+  
+  if (last_update != "") {
+    // epochs
+    last_update = Math.round(last_update.getTime() / 1000.0)
+  }
+  
+  $.get(this.dback + "/points", { last_update: last_update }, function(data) {
+    var items = eval(data);
     $.each(items, function(i,item) {
       // TODO: add opacity in, with item.opacity
       gv.update(item.x * gv.xwidth, item.y * gv.xwidth, item.opacity / 100);
     });
     // for vanity's sake
-    load_signature();
+    // load_signature();
   });
+  last_update = new Date;
 }
 
 // TODO: redefine the function definition to take an options hash instead
@@ -85,21 +93,22 @@ function load_signature() {
   });
 }
 
+function refresh() {
+  grid_view.load_points();
+}
+
 $(document).ready(function() {
+  last_update = "";
   grid_view = new GridView(200, 16, "http://localhost:4567", "#grid","#grid_container",12);
   grid_view.render();
   grid_view.load_points();
   
-  // alert(new Date());
-  
-  //t = new Date();
-  //t.parse("<%= DateTime.now %>")
-  //t = Date.parse("<%= DateTime.now %>");
-  //alert(t);
+  window.setInterval(refresh, 5000);
 
 });
 
 var grid_view;
+var last_update;
 
 </script>
 
