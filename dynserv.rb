@@ -9,7 +9,6 @@ require 'json'
 
 DataMapper.setup(:default, "sqlite3://#{Dir.pwd}/dynserv.sqlite3")
 
-# ******************************* MODELS
 class Point
   include DataMapper::Resource
   

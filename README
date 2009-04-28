@@ -1,3 +1,1 @@
 A simple header where clicks are recorded and are displayed to subsequent viewers, just for fun and jQuery education.
-
-** It would be really cool if this would update with AJAX as well...from other people's clicks.  How would I do that?  Well, I could use a timestamp.  On load, jQuery would save the timestamp from the server, then periodically look for updates.  If there were any, it would find them as points after the timestamp.  Each time it ran, it would update the timestamp.
